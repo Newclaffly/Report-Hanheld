@@ -1,0 +1,312 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Windows.Forms;
+using System.Data.SqlClient;
+using System.Collections;
+namespace parttag
+{
+    public partial class Form1 : Form
+    {
+        /*Develop Date :20/July/2562
+          Version : 3.0 */
+         
+        /* Variable Gobal   */
+        string g_tag;
+        string g_e_kanban;
+        string Vendercode;
+        string Plant;
+        string Period;
+        string Date_c;
+        string kb_input;
+        string temp_2; // need rename
+        ArrayList al = new ArrayList();
+        /*====================*/
+        string connecting = @"Data Source=DESKTOP-IUTHPCG\SQLEXPRESS;Initial Catalog=bds_pp_srct;Integrated Security=true;"; //sql connection
+        public Form1()
+        {
+            InitializeComponent();
+            ps.Clear();
+            kb.Clear();
+            tg.Clear();
+        }//end load from1
+
+        private void substring_pds()//substring pds Ex.S106190717F06   
+        {
+            try
+            {
+                string Original_format = ps.Text;
+                Vendercode = Original_format.Substring(0, 4);
+                Date_c = Original_format.Substring(4,6);
+                Plant = Original_format.Substring(10, 1);
+                Period = Original_format.Substring(11, 2);
+                using (SqlConnection conn = new SqlConnection(connecting))
+                {
+                    string data_kb = kb.Text;
+                    string[] kanban = data_kb.Split('-');
+                    //*** DataTable ***//
+                    SqlDataAdapter dtAdapter;
+                    DataTable dt = new DataTable();
+                    string sql = "SELECT TOP 1 DeliveryNumber,status,IsSuccess,shopping_qty ,Quantity,LotSize,(Quantity/LotSize) AS Perbox FROM t_part_tag WHERE PlantCode ='" + Plant + "' AND DeliveryPeriod = '" + Period + "'";
+                    dtAdapter = new SqlDataAdapter(sql, conn);
+                    dtAdapter.Fill(dt);
+                    pl.Text = Plant;
+                }
+            }catch(Exception ex){
+                MessageBox.Show(ex.Message);
+            } 
+        }// end method substring pds
+
+        private void split_kanban()//Split_kanban Ex.72M9F35258
+        { 
+         try
+            {
+                string data_kb = kb.Text;
+                string[] kanban = data_kb.Split('-');
+                using (SqlConnection conn = new SqlConnection(connecting))
+                {
+                    //*** DataTable ***//
+                    SqlDataAdapter dtAdapter;
+                    DataTable dt = new DataTable();
+                    string sql = "SELECT TOP 1 DeliveryNumber,PartNumber FROM t_part_tag WHERE DeliveryNumber='" + kanban [0]+ "' ";
+                     dtAdapter = new SqlDataAdapter(sql, conn);
+                     dtAdapter.Fill(dt);
+                     if (dt.Rows.Count > 0)
+                     {
+                         this.g_e_kanban = (string)dt.Rows[0]["PartNumber"];
+                     }// end if rows > 0
+                }//end sql connection
+            }catch(Exception ex){
+                MessageBox.Show(ex.Message);
+            }// end catch
+          }// end method split Kanban
+
+        private void split_tag()//Split_tag AS-93P
+        {
+                string data = tg.Text;
+                string[] tag = data.Split('P');
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connecting))
+                {
+                    //*** DataTable ***//
+                    SqlDataAdapter dtAdapter;
+                    DataTable dt = new DataTable();
+                    string sql = "SELECT TOP 1 SRCT_Code,Part_Number FROM m_kanban WHERE SRCT_Code ='" + tag[0] + "'  ";
+                     dtAdapter = new SqlDataAdapter(sql, conn);
+                     dtAdapter.Fill(dt);
+                     if (dt.Rows.Count > 0)
+                     {
+                         this.g_tag = (string)dt.Rows[0]["Part_Number"];
+                         this.kb_input = (string)dt.Rows[0]["SRCT_Code"];
+                     }// end if rows > 0
+                }// end sql connection
+            }// end try
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }// end catch
+        }// end method split_tag
+
+        private void check_statement()// check Kanban And Tag value Equal ?
+        {
+            try
+            {
+             split_kanban();
+             split_tag();
+                 if (g_tag.Equals(g_e_kanban)) // ตรวจสอบว่าค่า Tag มี PartNumber เท่ากันกับ ค่า Kanban
+                 {
+                    devile();
+                 }
+                 else{
+                    MessageBox.Show("Incorrect");
+                 }// end else
+              }catch(Exception ex){
+                MessageBox.Show(ex.Message);
+              }
+        }// end method check_statement
+    
+        private void devile()//ลบ Quantity - shooping_qty
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connecting))
+                {
+                    string data_kb = kb.Text;
+                    string[] kanban = data_kb.Split('-');
+                    //*** DataTable ***//
+                    SqlDataAdapter dtAdapter;
+                    DataTable dt = new DataTable();
+                    string sql = "SELECT TOP 1 DeliveryNumber,status,IsSuccess,shopping_qty ,Quantity,LotSize,(Quantity/LotSize) AS Perbox FROM t_part_tag WHERE PlantCode ='" + Plant + "' AND DeliveryPeriod = '" + Period + "' AND DeliveryNumber = '" + kanban[0] + "' ";
+                    dtAdapter = new SqlDataAdapter(sql, conn);
+                    dtAdapter.Fill(dt);
+                    if (dt.Rows.Count > 0)
+                    {
+                        int perbox = (int)dt.Rows[0]["Perbox"];
+                        int qty = (int)dt.Rows[0]["shopping_qty"] + 1;
+                        string up = "UPDATE t_part_tag SET shopping_qty = '" + qty + "' WHERE PlantCode ='" + Plant + "' AND DeliveryPeriod = '" + Period + "' AND DeliveryNumber = '" + kanban[0] + "' ";
+                        //*** DataTable ***//
+                        dtAdapter = new SqlDataAdapter(up, conn);
+                        dtAdapter.Fill(dt);
+                        amount.Text = perbox.ToString();
+                        if (perbox > qty)
+                        {
+                            check_status();
+                            tg.Text = kb_input;
+                            amount.Text = (perbox - qty).ToString();
+                            kb.Clear();
+                            kb.Focus();
+                        }
+                        else if (perbox == qty)
+                        {
+                            string st = "UPDATE t_part_tag SET status = 'Finish',IsSuccess = '1' WHERE PlantCode ='" + Plant + "' AND DeliveryPeriod = '" + Period + "' AND DeliveryNumber = '" + kanban[0] + "' ";
+                            //*** DataTable ***//
+                            dtAdapter = new SqlDataAdapter(st, conn);
+                            dtAdapter.Fill(dt);
+                            check_status();
+                            amount.Text = "0";
+                            /* Clear Textbox  */
+                            ps.Clear();
+                            kb.Clear();
+                            tg.Clear();
+                            ps.Enabled = true;
+                            ps.Focus();
+                            /* ============ */
+                        }
+                        else if (perbox < qty)
+                        {
+                            amount.Text = "0";
+                        }//end else  
+                    }// end if row > 0
+                }// end sql connection
+            }catch(Exception ex){
+                MessageBox.Show(ex.Message);
+            }
+        }// method devile
+
+        private void check_status()
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connecting))
+                {
+                    string data_kb = kb.Text;
+                    string[] kanban = data_kb.Split('-');
+                    //*** DataTable ***//
+                    SqlDataAdapter dtAdapter;
+                    DataTable dt = new DataTable();
+                    string st = "SELECT TOP 1 DeliveryNumber,status,IsSuccess,shopping_qty ,Quantity,LotSize,(Quantity/LotSize) AS Perbox FROM t_part_tag WHERE PlantCode ='" + Plant + "' AND DeliveryPeriod = '" + Period + "' AND DeliveryNumber = '" + kanban[0] + "' ";
+                    dtAdapter = new SqlDataAdapter(st, conn);
+                    dtAdapter.Fill(dt);
+                    string status = (string)dt.Rows[0]["status"];
+                    string plant = Plant;
+                    pl.Text = plant;
+                    finish_h.Text = status;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }// end method check_status
+
+        private bool check_dupicate(string text)//Check value Kanban Dupicate ?
+        {
+            if (al.Contains(text)) //if search al(arraylist) == Parameter(input)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }// end method check_dupicate(Parameter)
+
+        private void ps_KeyPress(object sender, KeyPressEventArgs e) //Input PDS
+        {
+            if (e.KeyChar == (char)13)
+            {
+                if (ps.Text != null)
+                {
+                   substring_pds();
+                   ps.Enabled = false;
+                }
+                else 
+                {
+                   ps.Focus();
+                }     
+            }// end if enter input
+        }//end method keypress PDS
+
+        private void kb_KeyPress(object sender, KeyPressEventArgs e) // Input KANBAN
+        {
+            try
+            {
+                if (e.KeyChar == (char)13)
+                {
+                    temp_2 = kb.Text;
+                    //MessageBox.Show(temp_2);
+                    split_kanban(); 
+                }// end if enter in
+            }catch(Exception ex){
+                MessageBox.Show(ex.Message);
+            }
+        }//end method keypress kanbana
+        
+        private void tg_KeyPress(object sender, KeyPressEventArgs e) //input TAG
+        {
+            try
+            {
+                if (e.KeyChar == (char)13)
+                { 
+                    split_tag();
+                    if (g_tag.Equals(g_e_kanban)) // ตรวจสอบว่าค่า Tag มี PartNumber เท่ากันกับ ค่า Kanban
+                    {
+                        if (!check_dupicate(temp_2))
+                        {
+                            // if not dup
+                            al.Add(temp_2);
+                            devile();
+                            temp_2 = null;
+                            dupicate.Text = "";
+                        }
+                        else 
+                        {
+                            dupicate.Text = "KANBAN ซ้ำ";
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("Incorrect");
+                    }// end else
+                }// end if press Enter
+            }catch(Exception ex){
+                MessageBox.Show(ex.Message);
+            }
+        }// end method keypress tag
+
+        private void button2_Click(object sender, EventArgs e) //exit program
+        {
+            this.Close();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button1_Click(object sender, EventArgs e)// Incomplete Reset
+        {
+            ps.Clear();
+            kb.Clear();
+            tg.Clear();
+            ps.Enabled = true;
+            ps.Focus();
+        }
+
+    }// class FROM
+}//end Parttag
