@@ -1,0 +1,486 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Windows.Forms;
+using System.Data.SqlClient;
+using System.Collections;
+using System.Collections.Generic;
+namespace WindowsFormsApplication12
+{
+    public partial class Form1 : Form
+    {
+        int box;
+        int quatity;
+        int xx;
+        int total;
+        int shop;
+        int qq;
+        int pack;
+        int total1 = new Int32();
+        string part_number;
+        string partnumber;
+        string p;
+        string ss;
+        string kk;
+        string kb;
+        string v;
+        string d;
+        string k;
+        string pr;
+        string ff;
+        string lot;
+        string dd;
+        string mm;
+        string yy;
+        string day;
+        string id;
+        string status;
+        string format;
+        DateTime days;
+
+        ArrayList List = new ArrayList();
+
+        public Form1()
+        {
+            InitializeComponent();
+        }
+        private void textBox1_KeyDown(object sender, KeyEventArgs e)
+        {
+            try
+            {
+                if (e.KeyCode == Keys.Enter)
+                {
+                    label8.Hide();
+                    label9.Hide();
+                    label5.Hide();
+                    label10.Hide();
+                    v = textBox1.Text.Substring(0, 4);
+                    d = textBox1.Text.Substring(4, 6);
+                    p = textBox1.Text.Substring(10, 1);
+                    pr = textBox1.Text.Substring(11, 2);
+                    yy = d.Substring(0, 2);
+                    mm = d.Substring(2, 2);
+                    dd = d.Substring(4, 2);
+                    day = "20" + yy + "-" + mm + "-" + dd;
+                    if (DateTime.TryParse(day, out days))
+                    {
+                        string formats = "yyyy-MM-dd";
+                        format = days.ToString(formats);
+                    }
+                    label5.Text = p;
+                    label5.Show();
+                    textBox2.Focus();
+                    textBox1.Enabled = false;
+                    checkstatus();
+                    depp();
+                    textBox2.Focus();
+                    textBox2.Clear();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                string a = textBox1.Text;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void textBox3_KeyDown(object sender, KeyEventArgs e)
+        {
+            try
+            {
+                if (e.KeyCode == Keys.Enter)
+                {
+                    string kan = textBox2.Text;
+                    string[] strarr = kan.Split('-');
+                    kb = (strarr[0]);
+                    pds();
+                    depp();
+                    checkstatus();
+                }
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+
+            }
+        }//Textbox3Key
+
+        private void textBox2_TextChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                k = textBox2.Text;
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+
+            }
+        }
+        private void textBox2_KeyDown(object sender, KeyEventArgs e)
+        {
+            try
+            {
+                if (e.KeyCode == Keys.Enter)
+                {
+                    label9.Hide();
+                    string kan = textBox2.Text; ;
+                    string[] strarr = kan.Split('-');
+                    kk = kan;
+                    id = (strarr[2]);
+                    if (!check(kk))
+                    {
+
+                        List.Add(kk);
+                        textBox3.Focus();
+                    }
+                    else
+                    {
+
+                        MessageBox.Show("Duplicate");
+
+                    }
+
+                    kk = null;
+                }
+            }
+
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+
+            }
+        }
+        private bool check(string text)
+        {
+            if (List.Contains(kk))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        private void textBox3_TextChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                string tg = textBox3.Text;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+
+            }
+        }
+
+        private void label6_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label5_Click(object sender, EventArgs e)
+        {
+
+        }
+        private void button1_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                textBox1.Enabled = true;
+                textBox1.Focus();
+                textBox1.Clear();
+                textBox2.Clear();
+                textBox3.Clear();
+                xx = 0;
+                qq = 0;
+                label8.Hide();
+                label9.Hide();
+                label5.Hide();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+
+            }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                textBox1.Enabled = true;
+                textBox1.Focus();
+                textBox1.Clear();
+                textBox2.Clear();
+                textBox3.Clear();
+                xx = 0;
+                qq = 0;
+                label8.Hide();
+                label9.Hide();
+                label5.Hide();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+
+            }
+        }
+        private void delete()//delete box
+        {
+            shop = shop + box;
+            if (quatity > shop && ss == "Waiting")
+            {
+                ss = "Waiting";
+                xx = quatity - shop;
+                ff = xx.ToString();
+                qq = xx / box;
+                textBox2.Focus();
+                textBox2.Clear();
+            }
+
+            else if (quatity > shop && ss == "Incomplete")
+            {
+                ss = "Incomplete";
+                xx = quatity - shop;
+                ff = xx.ToString();
+                qq = xx / box;
+                textBox2.Focus();
+                textBox2.Clear();
+
+            }
+            else
+            {
+                label9.Text = "ครบตามจำนวนแล้ว";
+                label9.Show();
+                ss = "Finish";
+                label8.Text = ss;
+                textBox1.Enabled = false;
+                textBox2.Focus();
+                textBox2.Clear();
+                textBox3.Clear();
+                xx = 0;
+                qq = 0;
+            }
+            SqlConnection con = new SqlConnection("server=srct-polycom\\sqlexpress;database=bds_pp_srct;Trusted_Connection=True");
+            con.Open();
+            SqlCommand cmd = new SqlCommand("update t_part_tag set status ='" + ss + "',shopping_qty ='" + shop + "' where DeliveryDate ='" + format + "' AND DeliveryPeriod ='" + pr + "' AND PlantCode ='" + p + "' AND DeliveryNumber='" + kb + "'", con);
+            SqlDataReader dr = cmd.ExecuteReader();
+
+        }//end delete box
+        public void part_names()
+        {
+            // split tag
+            string tt = textBox3.Text;
+            string[] strarr = tt.Split('P');
+            string t = (strarr[0]);
+
+            // connect database
+            bool temp = false;
+            SqlConnection con = new SqlConnection("server=srct-polycom\\sqlexpress;database=bds_pp_srct;Trusted_Connection=True");
+            con.Open();
+            SqlCommand cmd = new SqlCommand("SELECT TOP 1 Part_Number,Package FROM m_kanban WHERE SRCT_Code ='" + t + "'", con);
+            SqlDataReader dr = cmd.ExecuteReader();
+
+            while (dr.Read())
+            {
+                part_number = dr.GetString(0);
+                temp = true;
+            }
+
+            if (temp == false)
+            {
+                MessageBox.Show("not found");
+                con.Close();
+            }
+
+        }//end partname
+        private void pds()
+        {
+            bool temp = false;
+            SqlConnection con = new SqlConnection("server=srct-polycom\\sqlexpress;database=bds_pp_srct;Trusted_Connection=True");
+            con.Open();
+            SqlCommand cmd = new SqlCommand("select status,PartNumber,IsSuccess,shopping_qty,NoOfBoX=(Quantity/LotSize),Quantity,LotSize, Package from t_part_tag LEFT JOIN m_kanban ON t_part_tag.PartNumber = m_kanban.Part_Number where DeliveryDate ='" + format + "' AND DeliveryPeriod ='" + pr + "' AND PlantCode ='" + p + "' AND DeliveryNumber='" + kb + "'", con);
+            SqlDataReader dr = cmd.ExecuteReader();
+            //connectdatabase
+            while (dr.Read())
+            {
+                pack = dr.GetInt32(7);
+                ss = dr.GetString(0);
+                lot = dr.GetString(6);
+                box = Convert.ToInt32(lot);
+                quatity = dr.GetInt32(5);
+                shop = dr.GetInt32(3);
+                partnumber = dr.GetString(1);
+                temp = true;
+                part_names();
+                if (part_number == partnumber && box == pack)
+                {
+                    label8.Hide();
+                    delete();
+                }
+                else
+                {
+
+                    MessageBox.Show("Kanban ไม่ถูกต้อง");
+                    textBox2.Focus();
+                    textBox2.Clear();
+                }
+            }
+
+            if (temp == false)
+            {
+                MessageBox.Show("not found");
+                con.Close();
+            }
+        }
+        private void depp()
+        {
+            bool temp = false;
+            SqlConnection con = new SqlConnection("server=srct-polycom\\sqlexpress;database=bds_pp_srct;Trusted_Connection=True");
+            con.Open();
+            SqlCommand cmd = new SqlCommand("select status,PartNumber,shopping_qty,NoOfBoX=(Quantity/LotSize),Quantity,LotSize from t_part_tag where DeliveryDate ='" + format + "' AND DeliveryPeriod ='" + pr + "' AND PlantCode ='" + p + "'", con);
+            SqlDataReader dr = cmd.ExecuteReader();
+            int x_total1 = new Int32();
+            int qty_total1 = new Int32();
+
+            int r1;
+            while (dr.Read())
+            {
+                int sq2 = dr.GetInt32(2);
+                int qt2 = dr.GetInt32(4);
+                string b2 = dr.GetString(5);
+                string status2 = dr.GetString(0);
+                int a2 = Convert.ToInt32(b2);
+                temp = true;
+                qty_total1 = qty_total1 + sq2;
+                x_total1 = x_total1 + qt2;
+                total1 = x_total1 - qty_total1;
+                r1 = total1 / a2;
+
+                if (status2 == "Finish")
+                {
+                    label6.Text = r1.ToString();
+                }
+                else if (status2 == "Waiting")
+                {
+                    label6.Text = r1.ToString();
+                }
+            }
+
+            if (temp == false)
+            {
+                MessageBox.Show("not found");
+                con.Close();
+            }
+        }
+
+        private void checkstatus()
+        {
+            int qty_total=new Int32();
+            int x_total = new Int32();
+            bool temp = false;
+            SqlConnection con = new SqlConnection("server=srct-polycom\\sqlexpress;database=bds_pp_srct;Trusted_Connection=True");
+            con.Open();
+            SqlCommand cmd = new SqlCommand("select status,PartNumber,shopping_qty,NoOfBoX=(Quantity/LotSize),Quantity,LotSize from t_part_tag where DeliveryDate ='" + format + "' AND DeliveryPeriod ='" + pr + "' AND PlantCode ='" + p + "'", con);
+            SqlDataReader dr = cmd.ExecuteReader();
+            //connectdatabase
+
+            while (dr.Read())
+            {
+                int sq;
+                int qt;
+              
+                sq = dr.GetInt32(2);
+                qt = dr.GetInt32(4);
+                string b = dr.GetString(5);
+                int a = Convert.ToInt32(b);
+                status = dr.GetString(0);
+                temp = true;
+                qty_total = qty_total + sq;
+                x_total = x_total + qt;   
+            }
+            total = x_total - qty_total;
+            if (total <= 0)
+            {
+                label9.Hide();
+                status = "Finish";
+                label7.Text = status;
+                label7.Show();
+                label10.Text = "ครบตามใบสั่งซื้อแล้ว";
+                label10.Show();
+                textBox1.Enabled = true;
+                textBox1.Focus();
+                textBox1.Clear();
+                textBox2.Clear();
+                textBox3.Clear();
+                xx = 0;
+                qq = 0;
+            }
+
+            else if (total > 0)
+            {
+                status = "Waiting";
+                label7.Text = status;
+                label7.Show();
+            }
+
+            if (temp == false)
+            {
+                MessageBox.Show("not found");
+                con.Close();
+            }
+        }
+
+        private void label2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label9_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            label10.Hide();
+            label9.Hide();
+            label8.Hide();
+            label5.Hide();
+            label7.Hide();
+        }
+
+        private void textBox1_Validating(object sender, CancelEventArgs e)
+        {
+            if (string.IsNullOrEmpty(textBox1.Text))
+            {
+                e.Cancel = true;
+            }
+        }
+
+        private void label7_Click(object sender, EventArgs e)
+        {
+
+        }//textbox1Key
+    }
+}
