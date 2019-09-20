@@ -1,0 +1,11 @@
+C:\Users\SRCT\Desktop\report\report\bin\Debug\report.exe.config
+C:\Users\SRCT\Desktop\report\report\bin\Debug\report.exe
+C:\Users\SRCT\Desktop\report\report\bin\Debug\report.pdb
+C:\Users\SRCT\Desktop\report\report\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\SRCT\Desktop\report\report\obj\Debug\report.Form1.resources
+C:\Users\SRCT\Desktop\report\report\obj\Debug\report.Properties.Resources.resources
+C:\Users\SRCT\Desktop\report\report\obj\Debug\report.csproj.GenerateResource.Cache
+C:\Users\SRCT\Desktop\report\report\obj\Debug\RdlCompile.cache
+C:\Users\SRCT\Desktop\report\report\obj\Debug\RdlCompile.compiled
+C:\Users\SRCT\Desktop\report\report\obj\Debug\report.exe
+C:\Users\SRCT\Desktop\report\report\obj\Debug\report.pdb
